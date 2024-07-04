@@ -10,13 +10,13 @@
 
 LogViper is a robust Python-based log collection system designed to gather, process, and store system logs efficiently. It's built to handle a high volume of logs from various sources, with plans for significant expansion.
 
-## Tech Stack 🛠️
+## Tech Stack
 
 - 🐍 Python for core functionality
 - 🐘 PostgreSQL for log storage
 - 🐧 Systemd for service management
 
-## Key Features 🚀
+## Key Features
 
 1. **Flexible Log Collection**
    - Currently collects system metrics (CPU, memory, disk usage)
@@ -34,26 +34,16 @@ LogViper is a robust Python-based log collection system designed to gather, proc
    - Systemd service for automatic startup and crash recovery
    - Easy to deploy and manage on Linux systems
 
-## Upcoming Enhancements 🔮
+## Upcoming Enhancements
 
 - Integration with more log sources (e.g., syslog, journald)
 - Advanced log parsing and categorization
 - Real-time log streaming capabilities
 - Enhanced querying and visualization tools
 
-## Quick Start 🚀
+## Quick Start
 
 1. Clone the repository
 2. Install dependencies: `pip install -r requirements.txt`
 3. Configure your PostgreSQL connection in `config/.env`
 4. Deploy as a systemd service using the provided service file
-
-For detailed setup instructions, refer to the documentation.
-
-## Contributing 🤝
-
-We welcome contributions! Check out our contributing guidelines for more information.
-
-## License 📄
-
-This project is licensed under the MIT License - see the LICENSE file for details.
