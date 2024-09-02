@@ -10,6 +10,13 @@
 
 LogViper is a robust Python-based log collection system designed to gather, process, and store system logs efficiently. It's built to handle a high volume of logs from various sources, with plans for significant expansion.
 
+## Refactoring coming soon
+- Switch from Python to Go
+- Expand / or switch compleley from PostgreSQL towards Elasticsearch
+- Start Ubuntu OS Compatiblity
+- Flexible Log Collection idea remains
+- Lightweight Elastic Agent and Metricbeat Alternative
+
 ## Tech Stack
 
 - 🐍 Python for core functionality
