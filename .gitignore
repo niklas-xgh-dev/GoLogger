@@ -1,14 +1,2 @@
-# Standards
-venv/
-*.pyc
-__pycache__/
-.env
-.DS_Store
-# Tests
-tests/.env
-tests/.env.test
-tests/**pycache**/
-tests/__pycache__/
-tests/.Python
-tests/.DS_Store
-tests/.cache
+# executables
+log_collector
