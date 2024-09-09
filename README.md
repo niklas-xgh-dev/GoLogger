@@ -8,7 +8,7 @@
 
 # LogViper - Comprehensive Log Collection System 🐍
 
-LogViper is a robust Python-based log collection system designed to gather, process, and store system logs efficiently. It's built to handle a high volume of logs from various sources, with plans for significant expansion.
+LogViper is a robust Go-based log collection system designed to gather, process, and store system logs efficiently. It's built to handle a high volume of logs from various sources, with plans for significant expansion.
 
 ## Refactoring coming soon
 - Switch from Python to Go
