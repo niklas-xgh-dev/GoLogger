@@ -7,9 +7,9 @@
 
 </div>
 
-# LogViper - Comprehensive Log Collection System
+# GoLogger - Comprehensive Log Collection System
 
-LogViper is a high-performance, Go-based log collection system designed for efficient gathering, processing, and storage of system logs. It is architected to handle high-volume log ingestion from multiple sources, with ongoing development for expanded capabilities.
+GoLogger is a Go-based log collection system designed for gathering and storage of system logs.
 
 ## Recent Refactoring
 
