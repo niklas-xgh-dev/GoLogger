@@ -58,7 +58,7 @@ GoLogger is a Go-based log collection system designed for gathering and storage 
 2. Verify Go 1.20 or later is installed
 3. Execute `go mod tidy` to resolve and download dependencies
 4. Configure PostgreSQL connection parameters in `config/.env`
-5. Build and execute: `go build && ./logviper`
+5. Build and execute: `go build && ./GoLogger`
 
 ## Configuration
 
@@ -70,7 +70,7 @@ DATABASE_URL=postgres://u:p@localhost:5432/dbname?sslmode=disable
 
 ## Execution
 
-Run `./logviper` to initiate the log collection process.
+Run `./GoLogger` to initiate the log collection process.
 
 ## Contributing
 
