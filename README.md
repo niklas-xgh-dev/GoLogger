@@ -2,80 +2,69 @@
 
 ![Go](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
-![Elasticsearch](https://img.shields.io/badge/Elasticsearch-005571?style=for-the-badge&logo=elasticsearch&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
 
 </div>
 
-# GoLogger - Comprehensive Log Collection System
+# GoLogger - System Log Collection Tool
 
-GoLogger is a Go-based log collection system designed for gathering and storage of system logs.
+GoLogger is a Go-based system for efficient collection and storage of system logs and metrics.
 
-## Recent Refactoring
+## Technical Overview
 
-- Migrated from Python to Go for enhanced performance and concurrency
-- Streamlined codebase for improved maintainability and scalability
-- Current storage uses PostgreSQL, with planned migration or integration with Elasticsearch
-- Extended compatibility to Ubuntu OS
-- Maintained the extensible log collection architecture
-
-## Technical Stack
-
-- Go 1.20+ for core functionality (refactored from Python)
-- PostgreSQL for current log storage and querying
-- Planned Elasticsearch integration for advanced log analytics
-- Ubuntu OS compatibility
+- **Language**: Go 1.20+
+- **Storage**: PostgreSQL
+- **OS Compatibility**: Linux (Ubuntu), macOS
 
 ## Key Features
 
-1. **Extensible Log Collection**
-   - System metric collection (CPU, memory, disk utilization)
-   - Modular design for integration of additional log sources
+1. **Comprehensive Log Collection**
+   - System metrics (CPU, memory, disk utilization)
+   - Network connections and open ports
+   - Running services and processes
+   - User activities (logins, system users)
 
-2. **High-Performance Data Processing**
-   - Optimized log parsing and structuring
-   - Concurrent processing for improved throughput
+2. **Efficient Data Processing**
+   - Concurrent log collection and processing
+   - Structured log data in JSON format
 
-3. **Scalable Storage**
-   - PostgreSQL utilized for ACID-compliant log persistence
-   - Planned Elasticsearch integration for enhanced search and analytics capabilities
+3. **Modular Architecture**
+   - Easily extendable for additional log sources
+   - Pluggable storage backend (currently PostgreSQL)
 
-4. **Resource-Efficient Alternative**
-   - Designed as a lightweight alternative to Elastic Agent and Metricbeat
-   - Focused on core log collection and processing functionalities
+## Main Script Functionality
 
-## Planned Enhancements
+The core of GoLogger is built around several key functions:
 
-- Full Elasticsearch integration
-- Expansion of supported log sources (syslog, journald, etc.)
-- Implementation of advanced log parsing and categorization algorithms
-- Development of real-time log streaming capabilities
-- Enhanced query optimization and visualization tools
+- `collectSecurityLogs()`: Aggregates data from various system sources
+- `getOpenPorts()`: Scans for open network ports
+- `getRunningServices()`: Lists active system services
+- `getSystemUsers()`: Retrieves system user accounts
+- `getRecentLogins()`: Fetches recent user login information
+- `getSuspiciousProcesses()`: Identifies potentially suspicious running processes
 
-## Quick Start Guide
+The main loop collects logs at regular intervals, formats them as JSON, and stores them in the configured database.
+
+## Quick Start
 
 1. Clone the repository
-2. Verify Go 1.20 or later is installed
-3. Execute `go mod tidy` to resolve and download dependencies
-4. Configure PostgreSQL connection parameters in `config/.env`
-5. Build and execute: `go build && ./GoLogger`
+2. Ensure Go 1.20+ is installed
+3. Run `go mod tidy`
+4. Configure PostgreSQL in `config/.env`
+5. Build and run: `go build && ./GoLogger`
 
 ## Configuration
 
-Define your database connection string in `config/.env`:
+Set your database URL in `config/.env`:
 
 ```
 DATABASE_URL=postgres://u:p@localhost:5432/dbname?sslmode=disable
 ```
 
-## Execution
-
-Run `./GoLogger` to initiate the log collection process.
-
 ## Contributing
 
-Contributions are welcome. Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and contribution procedures.
+Contributions are welcome. Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-This project is distributed under the MIT License. See the [LICENSE](LICENSE) file for full details.
+Distributed under the MIT License. See [LICENSE](LICENSE) for details.
