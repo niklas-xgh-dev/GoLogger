@@ -215,8 +215,13 @@ func main() {
 			continue
 		}
 
-		logJSON, _ := json.Marshal(securityLog)
-		fmt.Printf("Collected security log: %s\n", logJSON)
+		logJSON, err := json.MarshalIndent(securityLog, "", "  ")
+		if err != nil {
+			log.Printf("Error marshaling JSON: %v", err)
+			continue
+		}
+
+		fmt.Printf("\n--- Collected Security Log ---\n%s\n---------------------------\n", string(logJSON))
 
 		if err := storage.InsertLog(securityLog); err != nil {
 			log.Printf("Error inserting log: %v", err)
