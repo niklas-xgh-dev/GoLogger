@@ -22,20 +22,12 @@ import (
 )
 
 type SecurityLog struct {
-	Timestamp           time.Time            `json:"timestamp"`
-	CPUPercent          float64              `json:"cpu_percent"`
-	MemoryPercent       float64              `json:"memory_percent"`
-	DiskPercent         float64              `json:"disk_percent"`
-	OpenPorts           []int                `json:"open_ports"`
-	RunningServices     []string             `json:"running_services"`
-	SystemUsers         []string             `json:"system_users"`
-	RecentLogins        []string             `json:"recent_logins"`
-	FailedLogins        int                  `json:"failed_logins"`
-	NetworkConnections  []net.ConnectionStat `json:"network_connections"`
-	SuspiciousProcesses []string             `json:"suspicious_processes"`
+	Timestamp time.Time       `json:"timestamp"`
+	LogData   json.RawMessage `json:"log_data"`
 }
 
 type LogStorage interface {
+	CreateTableIfNotExists() error
 	InsertLog(log SecurityLog) error
 }
 
@@ -43,32 +35,38 @@ type PostgresStorage struct {
 	db *sql.DB
 }
 
-func (p *PostgresStorage) InsertLog(log SecurityLog) error {
-	jsonData, err := json.Marshal(log)
-	if err != nil {
-		return err
-	}
-
-	_, err = p.db.Exec(`
-		INSERT INTO security_logs (timestamp, log_data)
-		VALUES ($1, $2)
-	`, log.Timestamp, jsonData)
+func (p *PostgresStorage) CreateTableIfNotExists() error {
+	_, err := p.db.Exec(`
+		CREATE TABLE IF NOT EXISTS security_logs (
+			id SERIAL PRIMARY KEY,
+			timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+			log_data JSONB NOT NULL
+		)
+	`)
 	return err
 }
 
-type MockStorage struct {
-	logs []SecurityLog
+func (p *PostgresStorage) InsertLog(log SecurityLog) error {
+	_, err := p.db.Exec(`
+		INSERT INTO security_logs (timestamp, log_data)
+		VALUES ($1, $2)
+	`, log.Timestamp, log.LogData)
+	return err
 }
 
-func (m *MockStorage) InsertLog(log SecurityLog) error {
-	m.logs = append(m.logs, log)
-	return nil
-}
-
-func collectSecurityLogs() (SecurityLog, error) {
-	cpuPercent, _ := cpu.Percent(0, false)
-	memInfo, _ := mem.VirtualMemory()
-	diskInfo, _ := disk.Usage("/")
+func collectSecurityLogs() (map[string]interface{}, error) {
+	cpuPercent, err := cpu.Percent(0, false)
+	if err != nil {
+		return nil, fmt.Errorf("error getting CPU percent: %v", err)
+	}
+	memInfo, err := mem.VirtualMemory()
+	if err != nil {
+		return nil, fmt.Errorf("error getting memory info: %v", err)
+	}
+	diskInfo, err := disk.Usage("/")
+	if err != nil {
+		return nil, fmt.Errorf("error getting disk usage: %v", err)
+	}
 
 	openPorts, _ := getOpenPorts()
 	runningServices, _ := getRunningServices()
@@ -78,18 +76,18 @@ func collectSecurityLogs() (SecurityLog, error) {
 	networkConnections, _ := net.Connections("all")
 	suspiciousProcesses, _ := getSuspiciousProcesses()
 
-	return SecurityLog{
-		Timestamp:           time.Now(),
-		CPUPercent:          cpuPercent[0],
-		MemoryPercent:       memInfo.UsedPercent,
-		DiskPercent:         diskInfo.UsedPercent,
-		OpenPorts:           openPorts,
-		RunningServices:     runningServices,
-		SystemUsers:         systemUsers,
-		RecentLogins:        recentLogins,
-		FailedLogins:        failedLogins,
-		NetworkConnections:  networkConnections,
-		SuspiciousProcesses: suspiciousProcesses,
+	return map[string]interface{}{
+		"timestamp":            time.Now(),
+		"cpu_percent":          cpuPercent[0],
+		"memory_percent":       memInfo.UsedPercent,
+		"disk_percent":         diskInfo.UsedPercent,
+		"open_ports":           openPorts,
+		"running_services":     runningServices,
+		"system_users":         systemUsers,
+		"recent_logins":        recentLogins,
+		"failed_logins":        failedLogins,
+		"network_connections":  networkConnections,
+		"suspicious_processes": suspiciousProcesses,
 	}, nil
 }
 
@@ -123,7 +121,6 @@ func getRunningServices() ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		// Parse the output to extract service names
 		return strings.Split(string(output), "\n"), nil
 	} else if runtime.GOOS == "linux" {
 		cmd := exec.Command("systemctl", "list-units", "--type=service")
@@ -131,14 +128,12 @@ func getRunningServices() ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		// Parse the output to extract service names
 		return strings.Split(string(output), "\n"), nil
 	}
 	return nil, fmt.Errorf("unsupported operating system")
 }
 
 func getSystemUsers() ([]string, error) {
-	// Read from /etc/passwd on Unix-like systems
 	data, err := os.ReadFile("/etc/passwd")
 	if err != nil {
 		return nil, err
@@ -163,8 +158,7 @@ func getRecentLogins() ([]string, error) {
 }
 
 func getFailedLogins() (int, error) {
-	// This is a placeholder. The actual implementation would depend on the OS and logging system.
-	// For example, on Linux you might parse /var/log/auth.log
+	// Placeholder: Implement based on your OS and logging system
 	return 0, nil
 }
 
@@ -180,7 +174,6 @@ func getSuspiciousProcesses() ([]string, error) {
 		if err != nil {
 			continue
 		}
-		// This is a very simplistic check and should be expanded based on your specific criteria
 		if strings.Contains(strings.ToLower(name), "suspicious") {
 			suspicious = append(suspicious, name)
 		}
@@ -193,38 +186,45 @@ func main() {
 		log.Println("Warning: Error loading .env file")
 	}
 
-	var storage LogStorage
-
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		log.Println("DATABASE_URL not set. Using mock storage.")
-		storage = &MockStorage{}
-	} else {
-		db, err := sql.Open("postgres", dbURL)
-		if err != nil {
-			log.Fatalf("Error opening database connection: %v", err)
-		}
-		defer db.Close()
-		storage = &PostgresStorage{db: db}
+		log.Fatal("DATABASE_URL not set. Exiting.")
+	}
+
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatalf("Error opening database connection: %v", err)
+	}
+	defer db.Close()
+
+	storage := &PostgresStorage{db: db}
+
+	if err := storage.CreateTableIfNotExists(); err != nil {
+		log.Fatalf("Error creating table: %v", err)
 	}
 
 	for {
-		securityLog, err := collectSecurityLogs()
+		securityLogData, err := collectSecurityLogs()
 		if err != nil {
 			log.Printf("Error collecting security logs: %v", err)
 			continue
 		}
 
-		logJSON, err := json.MarshalIndent(securityLog, "", "  ")
+		logJSON, err := json.Marshal(securityLogData)
 		if err != nil {
 			log.Printf("Error marshaling JSON: %v", err)
 			continue
 		}
 
-		fmt.Printf("\n--- Collected Security Log ---\n%s\n---------------------------\n", string(logJSON))
+		secLog := SecurityLog{
+			Timestamp: time.Now(),
+			LogData:   logJSON,
+		}
 
-		if err := storage.InsertLog(securityLog); err != nil {
+		if err := storage.InsertLog(secLog); err != nil {
 			log.Printf("Error inserting log: %v", err)
+		} else {
+			fmt.Printf("Log inserted at %s\n", secLog.Timestamp)
 		}
 
 		time.Sleep(5 * time.Minute)
